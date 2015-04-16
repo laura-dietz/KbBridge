@@ -1,18 +1,17 @@
 package edu.umass.ciir.kbbridge.search
 
 import java.io.File
-import org.lemurproject.galago.core.retrieval.query.{AnnotatedNode, StructuredQuery, Node}
-import org.lemurproject.galago.tupleflow.{FakeParameters, Parameters}
-import org.lemurproject.galago.core.parse.{TagTokenizer, Document}
-import scala.collection.JavaConversions._
-import org.lemurproject.galago.core.retrieval.{LocalRetrieval, RetrievalFactory, ScoredPassage, ScoredDocument}
-import org.lemurproject.galago.core.retrieval.prf.WeightedTerm
-import scala._
-import com.google.common.cache.{CacheLoader, CacheBuilder, LoadingCache}
+
+import edu.umass.ciir.kbbridge.data.{DocumentProvider, GalagoBridgeDocument, GalagoBridgeDocumentWrapper}
 import org.lemurproject.galago.core.index.stats.NodeStatistics
-import java.util.concurrent.TimeUnit
-import edu.umass.ciir.kbbridge.data.{GalagoBridgeDocumentWrapper, GalagoBridgeDocument, DocumentProvider}
 import org.lemurproject.galago.core.parse.Document.DocumentComponents
+import org.lemurproject.galago.core.parse.{Document, TagTokenizer}
+import org.lemurproject.galago.core.retrieval.prf.WeightedTerm
+import org.lemurproject.galago.core.retrieval.query.{AnnotatedNode, Node, StructuredQuery}
+import org.lemurproject.galago.core.retrieval.{LocalRetrieval, RetrievalFactory, ScoredDocument, ScoredPassage}
+import org.lemurproject.galago.tupleflow.{FakeParameters, Parameters}
+
+import scala.collection.JavaConversions._
 
 /**
  * User: dietz
@@ -22,15 +21,15 @@ import org.lemurproject.galago.core.parse.Document.DocumentComponents
 
 class GalagoRetrieval(jsonConfigFile: String, galagoUseLocalIndex: Boolean, galagoSrv: String = "", galagoPort: String="", val usePassage:Boolean = false) extends DocumentProvider {
 
-  val termStatisticsCache: LoadingCache[String, NodeStatistics] = CacheBuilder.newBuilder()
-    .maximumSize(1000)
-    .expireAfterWrite(10, TimeUnit.MINUTES)
-    .build(
-    new CacheLoader[String, NodeStatistics]() {
-      def load(key: String): NodeStatistics = {
-        getStatistics(key)
-      }
-    })
+//  val termStatisticsCache: LoadingCache[String, NodeStatistics] = CacheBuilder.newBuilder()
+//    .maximumSize(1000)
+//    .expireAfterWrite(10, TimeUnit.MINUTES)
+//    .build(
+//    new CacheLoader[String, NodeStatistics]() {
+//      def load(key: String): NodeStatistics = {
+//        getStatistics(key)
+//      }
+//    })
 
 //  val documentCache: LoadingCache[(String, Parameters), Document] = CacheBuilder.newBuilder()
 //    .maximumSize(100)
@@ -136,8 +135,8 @@ class GalagoRetrieval(jsonConfigFile: String, galagoUseLocalIndex: Boolean, gala
   def getFieldTermCount(cleanTerm: String, field: String): Long = {
     if (cleanTerm.length > 0) {
       val transformedText = "\"" + cleanTerm.replaceAllLiterally("\"","") + "\"" + "." + field
-      val statistics = termStatisticsCache.get(transformedText)
-      //val statistics = getStatistics(transformedText)
+//      val statistics = termStatisticsCache.get(transformedText)
+      val statistics = getStatistics(transformedText)
       statistics.nodeFrequency
     } else {
       0
